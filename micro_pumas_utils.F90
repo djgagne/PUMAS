@@ -443,7 +443,7 @@ subroutine rising_factorial_r8_vec(x, n, res,vlen)
   !$acc data present (x,res)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(tmp)
+  !$acc loop gang vector
   do i=1,vlen
      tmp = x(i)+n
      res(i) = gamma(tmp)
@@ -562,7 +562,7 @@ subroutine calc_ab_vect(t, qv, xxl, ab, vlen)
   !$acc data present (t,qv,xxl,ab)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(dqsdt)
+  !$acc loop gang vector
   do i=1,vlen
      dqsdt = xxl*qv(i) / (rv * t(i)**2)
      ab(i) = 1._r8 + dqsdt*xxl/cpp
@@ -1201,7 +1201,7 @@ subroutine ice_deposition_sublimation(t, qv, qi, ni, &
   call size_dist_param_basic_vect(mg_ice_props, qiic, niic, lami, vlen, n0i)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(epsi)
+  !$acc loop gang vector
   do i=1,vlen
      if (qi(i)>=qsmall) then
         !Get depletion timescale=1/eps
@@ -1299,7 +1299,7 @@ subroutine ice_deposition_sublimation_mg4(t, qv, qi, niic, &
   !$acc end parallel
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(epsi)
+  !$acc loop gang vector
   do i=1,vlen
      if (qi(i)>=qsmall) then
         if ( t(i) .lt. tmelt ) then
@@ -1450,7 +1450,7 @@ subroutine sb2001v2_liq_autoconversion(pgam,qc,nc,qr,rho,relvar,au,nprc,nprc1,vl
   !$acc data present (pgam,qc,nc,qr,rho,relvar,au,nprc1,nprc)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(dumi,nu,dum,dum1)
+  !$acc loop gang vector
   do i=1,vlen
      if (qc(i) > qsmall) then
        dumi = int(pgam(i))
@@ -1512,7 +1512,7 @@ subroutine sb2001v2_accre_cld_water_rain(qc,nc,qr,rho,relvar,pra,npra,vlen)
   !$acc data present (qc,nc,qr,rho,relvar,pra,npra)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(dum,dum1)
+  !$acc loop gang vector
   do i = 1,vlen
     if (qc(i) > qsmall) then
       dum     = 1._r8-qc(i)/(qc(i)+qr(i))
@@ -1558,7 +1558,7 @@ subroutine ice_autoconversion(t, qiic, lami, n0i, dcs, prci, nprci, vlen)
   !$acc data present (t,qiic,lami,n0i,prci,nprci)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(d_rat,m_ip)
+  !$acc loop gang vector
   do i=1,vlen
      if (t(i) <= tmelt .and. qiic(i) >= qsmall) then
         d_rat = lami(i)*dcs
@@ -1630,7 +1630,7 @@ subroutine immersion_freezing(microp_uniform, t, pgam, lamc, &
   end if
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(tmp)
+  !$acc loop gang vector
   do i=1,vlen
      if (qcic(i) >= qsmall .and. t(i) < 269.15_r8) then
         call rising_factorial(pgam(i)+1._r8, 3, tmp)
@@ -1705,7 +1705,7 @@ subroutine contact_freezing (microp_uniform, t, p, rndst, nacon, &
   !$acc      create  (nslip,ndfaer)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(dum,dum1,tcnt,viscosity,mfp,contact_factor,tmp)
+  !$acc loop gang vector
   do i = 1,vlen
      if (qcic(i) >= qsmall .and. t(i) < 269.15_r8) then
         if (microp_uniform) then
@@ -1873,7 +1873,7 @@ subroutine accrete_cloud_water_snow(t, rho, asn, uns, mu, qcic, ncic, qsic, &
   !$acc      present (pgam,lamc,lams,n0s,psacws,npsacws)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(dc0,dum,eci,accrete_rate)
+  !$acc loop gang vector
   do i=1,vlen
      if (qsic(i) >= qsmall .and. t(i) <= tmelt .and. qcic(i) >= qsmall) then
         ! put in size dependent collection efficiency
@@ -2026,7 +2026,7 @@ subroutine accrete_rain_snow(t, rho, umr, ums, unr, uns, qric, qsic, &
   !$acc      present (lamr,n0r,lams,n0s,pracs,npracs)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(common_factor,d_rat)
+  !$acc loop gang vector
   do i=1,vlen
      if (qric(i) >= icsmall .and. qsic(i) >= icsmall .and. t(i) <= tmelt) then
         common_factor = pi*ecr*rho(i)*n0r(i)*n0s(i)/(lamr(i)**3 * lams(i))
@@ -2248,7 +2248,7 @@ subroutine accrete_cloud_ice_snow(t, rho, asn, qiic, niic, qsic, &
   !$acc data present (t,rho,asn,qiic,niic,qsic,lams,n0s,prai,nprai)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(accrete_rate)
+  !$acc loop gang vector
   do i=1,vlen
      if (qsic(i) >= qsmall .and. qiic(i) >= qsmall .and. t(i) <= tmelt) then
         accrete_rate = pi/4._r8 * eii * asn(i) * rho(i) * n0s(i) * gamma_bs_plus3/ &
@@ -2333,7 +2333,7 @@ subroutine evaporate_sublimate_precip(t, rho, dv, mu, sc, q, qvl, qvi, &
      end if
   end do
 
-  !$acc loop gang vector private(qclr,eps,abr,ab)
+  !$acc loop gang vector
   do i=1,vlen
      ! only calculate if there is some precip fraction > cloud fraction
      if (precip_frac(i) > dum(i)) then
@@ -2450,7 +2450,7 @@ subroutine evaporate_sublimate_precip_mg4(t, rho, dv, mu, sc, q, qvl, qvi, &
      end if
   end do
 
-  !$acc loop gang vector private(qclr,eps,abr)
+  !$acc loop gang vector
   do i=1,vlen
      ! only calculate if there is some precip fraction > cloud fraction
      if (precip_frac(i) > dum(i)) then
@@ -2565,7 +2565,7 @@ subroutine evaporate_sublimate_precip_graupel(t, rho, dv, mu, sc, q, qvl, qvi, &
      end if
   end do
 
-  !$acc loop gang vector private(qclr,eps,abr,ab,abg)
+  !$acc loop gang vector
   do i=1,vlen
      ! only calculate if there is some precip fraction > cloud fraction
      if (precip_frac(i) > dum(i)) then
@@ -2706,7 +2706,7 @@ subroutine evaporate_sublimate_precip_graupel_mg4(t, rho, dv, mu, sc, q, qvl, qv
      end if
   end do
 
-  !$acc loop gang vector private(qclr,eps,abr,abg)
+  !$acc loop gang vector
   do i=1,vlen
      ! only calculate if there is some precip fraction > cloud fraction
      if (precip_frac(i) > dum(i)) then
@@ -2793,7 +2793,7 @@ subroutine bergeron_process_snow(t, rho, dv, mu, sc, qvl, qvi, asn, &
   !$acc      present (asn,qcic,qsic,lams,n0s,bergs)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(eps,ab)
+  !$acc loop gang vector
   do i=1,vlen
      if (qsic(i) >= qsmall.and. qcic(i) >= qsmall .and. t(i) < tmelt) then
         call calc_ab(t(i), qvi(i), xxls, ab)
@@ -2952,7 +2952,7 @@ subroutine graupel_riming_liquid_snow(psacws,qsic,qcic,nsic,rho,rhosn,rhog,asn,l
   !$acc data present (psacws,qsic,qcic,nsic,rho,asn,lams,n0s,pgsacw,nscng)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(dum)
+  !$acc loop gang vector
   do i=1,vlen
      if (psacws(i).gt.0._r8 .and. qsic(i).GE.0.1e-3_r8 .AND. qcic(i).GE.0.5E-3_r8) then
         ! Only allow conversion if qni > 0.1 and qc > 0.5 g/kg following Rutledge and Hobbs (1984)
@@ -3024,7 +3024,7 @@ subroutine graupel_collecting_rain(qric,qgic,umg,umr,ung,unr,rho,n0r,lamr,n0g,la
   !$acc      present (n0r,lamr,n0g,lamg,pracg,npracg)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(dum)
+  !$acc loop gang vector
   do i=1,vlen
      if (qric(i).ge.1.e-8_r8.and.qgic(i).ge.1.e-8_r8) then
         ! pracg is mixing ratio of rain per sec collected by graupel/hail
@@ -3097,7 +3097,7 @@ subroutine graupel_rain_riming_snow(pracs,npracs,psacr,qsic,qric,nric,nsic,n0s,l
   !$acc      present (nsic,n0s,lams,n0r,lamr,pgracs,ngracs)
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(dum)
+  !$acc loop gang vector
   do i=1,vlen
      if (pracs(i).gt.0._r8.and.qsic(i).ge.0.1e-3_r8.and.qric(i).ge.0.1e-3_r8) then
         ! only allow conversion if qs > 0.1 and qr > 0.1 g/kg following rutledge and hobbs (1984)
@@ -3168,7 +3168,7 @@ subroutine graupel_rime_splintering(t,qcic,qric,qgic,psacwg,pracg,&
 !========================================================================
 
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector private(fmult)
+  !$acc loop gang vector
   do i=1,vlen
      nmultrg(i) = 0._r8
      qmultrg(i) = 0._r8
