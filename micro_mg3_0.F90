@@ -1240,17 +1240,18 @@ subroutine micro_mg_tend ( &
   do k=1,nlev
      do i=1,mgncol
         ! make sure when above freezing that esi=esl, not active yet
-        esi(i,k)=esl(i,k)
-        qvi(i,k)=qvl(i,k)
+        dum1A(i,k) = esi(i,k)
+        dum2A(i,k) = qvi(i,k)
+        esi(i,k) = esl(i,k)
+        qvi(i,k) = qvl(i,k)
         if (t(i,k) < tmelt) then
            ! Scale the water saturation values to reflect subgrid scale
            ! ice cloud fraction, where ice clouds begin forming at a
            ! gridbox average relative humidity of rhmini (not 1).
            !
-           ! NOTE: For subcolumns and other non-subgrid clouds, qsfm willi
-           ! be 1.
-           qvi(i,k) = qsfm(i,k) * qvi(i,k)
-           esi(i,k) = qsfm(i,k) * esi(i,k)
+           ! NOTE: For subcolumns and other non-subgrid clouds, qsfm will be 1.
+           qvi(i,k) = qsfm(i,k) * dum2A(i,k)
+           esi(i,k) = qsfm(i,k) * dum1A(i,k)
            qvl(i,k) = qsfm(i,k) * qvl(i,k)
            esl(i,k) = qsfm(i,k) * esl(i,k)
         end if
@@ -1665,12 +1666,13 @@ subroutine micro_mg_tend ( &
               qr(i,k) = max(qr(i,k) - minstrf(i,k), 0._r8)
               nr(i,k) = max(nr(i,k) - ninstrf(i,k), 0._r8)
 
-              qs(i,k) = max(qs(i,k) + minstrf(i,k), 0._r8)
-              ns(i,k) = max(ns(i,k) + ninstrf(i,k), 0._r8)
               ! freeze rain to graupel not snow.
               if(do_hail.or.do_graupel) then
                  qg(i,k) = max(qg(i,k) + minstrf(i,k), 0._r8)
                  ng(i,k) = max(ng(i,k) + ninstrf(i,k), 0._r8)
+              else
+                 qs(i,k) = max(qs(i,k) + minstrf(i,k), 0._r8)
+                 ns(i,k) = max(ns(i,k) + ninstrf(i,k), 0._r8)
               end if
            end if
         end if
@@ -1906,16 +1908,14 @@ subroutine micro_mg_tend ( &
   !$acc loop gang vector collapse(2)
   do k=1,nlev
      do i=1,mgncol
+        ums(i,k) = 0._r8
+        uns(i,k) = 0._r8
         if (ifs_sed) then
-           ums(i,k) = 0._r8
-           uns(i,k) = 0._r8
            if (lams(i,k) > 0._r8) then
               ums(i,k) = 1._r8
               uns(i,k) = 1._r8
            end if
         else
-           ums(i,k) = 0._r8
-           uns(i,k) = 0._r8
            if (lams(i,k) > 0._r8) then
               dum_2D(i,k) = lams(i,k)**bs
               ! provisional snow number and mass weighted mean fallspeed (m/s)
@@ -2337,11 +2337,12 @@ subroutine micro_mg_tend ( &
      !$acc loop gang vector collapse(2)
      do k=1,nlev
         do i=1,mgncol
-           tmpfrz = 0._r8
            ! conservation of ni
            !-------------------------------------------------------------------
            if (use_hetfrz_classnuc) then
               tmpfrz = nnuccc(i,k)
+           else
+              tmpfrz = 0._r8
            end if
            dum = ((-nnucct(i,k)-tmpfrz-nnudep(i,k)-nsacwi(i,k)-nmultg(i,k))*lcldm(i,k)+(nprci(i,k)+ &
                 nprai(i,k)-nsubi(i,k))*icldm(i,k)+(-nmultrg(i,k)-nnuccri(i,k))*precip_frac(i,k)- &
@@ -2843,10 +2844,7 @@ subroutine micro_mg_tend ( &
            dum2 = pgam(i,k)+4._r8
            vtrmc(i,k)=acn(i,k)*gamma(dum1)/(lamc(i,k)**bc*gamma(dum2))
            ! Following ifs, no condensate sedimentation
-           if (ifs_sed) then
-              fc(i,k)  = 0._r8
-              fnc(i,k) = 0._r8
-           else
+           if (.not. ifs_sed) then
               dum3     = 1._r8+bc+pgam(i,k)
               dum4     = pgam(i,k)+1._r8
               fc(i,k)  = g*rho(i,k)*vtrmc(i,k)
@@ -3182,8 +3180,6 @@ subroutine micro_mg_tend ( &
               qrtend(i,k)=qrtend(i,k)-dum*dumr(i,k)*rdeltat
               nrtend(i,k)=nrtend(i,k)-dum*dumnr(i,k)*rdeltat
 
-              qitend(i,k)=qitend(i,k)+dum*dumr(i,k)*rdeltat
-              nitend(i,k)=nitend(i,k)+dum*dumnr(i,k)*rdeltat
               if (lamr(i,k) < 1._r8/Dcs) then
                  if (do_hail.or.do_graupel) then
                     qgtend(i,k)=qgtend(i,k)+dum*dumr(i,k)*rdeltat
@@ -3192,6 +3188,9 @@ subroutine micro_mg_tend ( &
                     qstend(i,k)=qstend(i,k)+dum*dumr(i,k)*rdeltat
                     nstend(i,k)=nstend(i,k)+dum*dumnr(i,k)*rdeltat
                  end if
+              else
+                 qitend(i,k)=qitend(i,k)+dum*dumr(i,k)*rdeltat
+                 nitend(i,k)=nitend(i,k)+dum*dumnr(i,k)*rdeltat
               end if
 
               ! heating tendency
@@ -3297,13 +3296,14 @@ subroutine micro_mg_tend ( &
               dum = (dum_2D(i,k)-qvnA(i,k))/(1._r8+xxlv_squared*qvnA(i,k)/(cpp*rv*ttmpA(i,k)**2))*rdeltat
               ! add to output cme
               cmeout(i,k) = cmeout(i,k)+dum
-              ! now add to tendencies, partition between liquid and ice based on temperature
               dum1=(268.15_r8-ttmpA(i,k))/30._r8
+              ! now add to tendencies, partition between liquid and ice based on temperature
               if (ttmpA(i,k) > 268.15_r8) then
                  dum1=0.0_r8
-                 ! now add to tendencies, partition between liquid and ice based on te
-                 !-------------------------------------------------------
-              else if (ttmpA(i,k) < 238.15_r8) then
+              end if
+              ! now add to tendencies, partition between liquid and ice based on te
+              !-------------------------------------------------------
+              if (ttmpA(i,k) < 238.15_r8) then
                  dum1=1.0_r8
               end if
               dum = (dum_2D(i,k)-qvnA(i,k))/(1._r8+(xxls*dum1+xxlv*(1._r8-dum1))**2 &
@@ -3518,7 +3518,6 @@ subroutine micro_mg_tend ( &
               ! adjust number conc if needed to keep mean size in reasonable range
               nrtend(i,k)=(dumnr(i,k)*precip_frac(i,k)-nr(i,k))*rdeltat
            end if
-
         end if
      end do
   end do
@@ -3640,7 +3639,6 @@ subroutine micro_mg_tend ( &
      do i=1,mgncol
         qrout2(i,k) = 0._r8
         nrout2(i,k) = 0._r8
-        drout2(i,k) = 0._r8
         freqr(i,k) = 0._r8
         reff_rain(i,k) = 0._r8
         if (qrout(i,k) .gt. 1.e-7_r8 .and. nrout(i,k) .gt. 0._r8) then
@@ -3673,7 +3671,6 @@ subroutine micro_mg_tend ( &
         dsout(i,k)  = 0._r8
         qsout2(i,k) = 0._r8
         nsout2(i,k) = 0._r8
-        dsout2(i,k) = 0._r8
         freqs(i,k)  = 0._r8
         reff_snow(i,k)=0._r8
         if (qsout(i,k) .gt. 1.e-7_r8 .and. nsout(i,k) .gt. 0._r8) then
@@ -3720,7 +3717,6 @@ subroutine micro_mg_tend ( &
         dgout(i,k)  = 0._r8
         qgout2(i,k) = 0._r8
         ngout2(i,k) = 0._r8
-        dgout2(i,k) = 0._r8
         freqg(i,k)  = 0._r8
         reff_grau(i,k)=0._r8
         if (qgout(i,k) .gt. 1.e-7_r8 .and. ngout(i,k) .gt. 0._r8) then

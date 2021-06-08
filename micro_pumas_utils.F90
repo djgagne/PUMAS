@@ -810,8 +810,7 @@ subroutine size_dist_param_basic_line(props, qic, nic, lam, n0)
      if (lam < props%lambda_bounds(1)) then
         lam = props%lambda_bounds(1)
         nic = lam**(props%eff_dim) * qic/props%shape_coef
-     end if
-     if (lam > props%lambda_bounds(2)) then
+     else if (lam > props%lambda_bounds(2)) then
         lam = props%lambda_bounds(2)
         nic = lam**(props%eff_dim) * qic/props%shape_coef
      end if
@@ -863,8 +862,7 @@ subroutine size_dist_param_basic_vect(props, qic, nic, lam, vlen, n0)
         if (lam(i) < lbnd) then
            lam(i) = lbnd
            nic(i) = lam(i)**(effDim) * qic(i)/shapeCoef
-        end if
-        if (lam(i) > ubnd) then
+        else if (lam(i) > ubnd) then
            lam(i) = ubnd
            nic(i) = lam(i)**(effDim) * qic(i)/shapeCoef
         end if
@@ -924,8 +922,7 @@ subroutine size_dist_param_basic_2D(props, qic, nic, lam, dim1, dim2, n0)
            if (lam(i,k) < lbnd) then
               lam(i,k) = lbnd
               nic(i,k) = lam(i,k)**(effDim) * qic(i,k)/shapeCoef
-           end if
-           if (lam(i,k) > ubnd) then
+           else if (lam(i,k) > ubnd) then
               lam(i,k) = ubnd
               nic(i,k) = lam(i,k)**(effDim) * qic(i,k)/shapeCoef
            end if
@@ -987,8 +984,7 @@ subroutine size_dist_param_basic_vect2(props, qic, nic, shapeC, lbnd, ubnd, lam,
         if (lam(i) < lbnd(i)) then
            lam(i) = lbnd(i)
            nic(i) = lam(i)**(effDim) * qic(i)/shapeC(i)
-        end if
-        if (lam(i) > ubnd(i)) then
+        else if (lam(i) > ubnd(i)) then
            lam(i) = ubnd(i)
            nic(i) = lam(i)**(effDim) * qic(i)/shapeC(i)
         end if
@@ -1948,8 +1944,7 @@ subroutine secondary_ice_production(t, psacws, msacwi, nsacwi, vlen)
      nsacwi(i) = 0.0_r8
      if((t(i) < 270.16_r8) .and. (t(i) >= 268.16_r8)) then
         nsacwi(i) = 3.5e8_r8*(270.16_r8-t(i))/2.0_r8*psacws(i)
-     end if
-     if((t(i) < 268.16_r8) .and. (t(i) >= 265.16_r8)) then
+     else if((t(i) < 268.16_r8) .and. (t(i) >= 265.16_r8)) then
         nsacwi(i) = 3.5e8_r8*(t(i)-265.16_r8)/3.0_r8*psacws(i)
      end if
   end do
@@ -3115,14 +3110,11 @@ subroutine graupel_rime_splintering(t,qcic,qric,qgic,psacwg,pracg,&
               if (t(i).lt.tm_3 .and. t(i).gt.tm_8) then
                  if (t(i).gt.tm_3) then
                     fmult = 0._r8
-                 end if
-                 if (t(i).le.tm_3.and.t(i).gt.tm_5)  then
+                 else if (t(i).le.tm_3.and.t(i).gt.tm_5)  then
                     fmult = (tm_3-t(i))/2._r8
-                 end if
-                 if (t(i).ge.tm_8.and.t(i).le.tm_5)   then
+                 else if (t(i).ge.tm_8.and.t(i).le.tm_5)   then
                     fmult = (t(i)-tm_8)/3._r8
-                 end if
-                 if (t(i).lt.tm_8) then
+                 else if (t(i).lt.tm_8) then
                     fmult = 0._r8
                  end if
 ! 1000 is to convert from kg to g  (Check if needed for MG)
