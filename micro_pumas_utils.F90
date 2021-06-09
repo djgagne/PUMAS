@@ -862,7 +862,8 @@ subroutine size_dist_param_basic_vect(props, qic, nic, lam, vlen, n0)
         if (lam(i) < lbnd) then
            lam(i) = lbnd
            nic(i) = lam(i)**(effDim) * qic(i)/shapeCoef
-        else if (lam(i) > ubnd) then
+        end if
+        if (lam(i) > ubnd) then
            lam(i) = ubnd
            nic(i) = lam(i)**(effDim) * qic(i)/shapeCoef
         end if
@@ -922,7 +923,8 @@ subroutine size_dist_param_basic_2D(props, qic, nic, lam, dim1, dim2, n0)
            if (lam(i,k) < lbnd) then
               lam(i,k) = lbnd
               nic(i,k) = lam(i,k)**(effDim) * qic(i,k)/shapeCoef
-           else if (lam(i,k) > ubnd) then
+           end if
+           if (lam(i,k) > ubnd) then
               lam(i,k) = ubnd
               nic(i,k) = lam(i,k)**(effDim) * qic(i,k)/shapeCoef
            end if
@@ -984,7 +986,8 @@ subroutine size_dist_param_basic_vect2(props, qic, nic, shapeC, lbnd, ubnd, lam,
         if (lam(i) < lbnd(i)) then
            lam(i) = lbnd(i)
            nic(i) = lam(i)**(effDim) * qic(i)/shapeC(i)
-        else if (lam(i) > ubnd(i)) then
+        end if
+        if (lam(i) > ubnd(i)) then
            lam(i) = ubnd(i)
            nic(i) = lam(i)**(effDim) * qic(i)/shapeC(i)
         end if
@@ -1205,9 +1208,8 @@ subroutine ice_deposition_sublimation(t, qv, qi, ni, &
         vap_dep(i) = vap_dep(i)*icldm(i)
 
         !Split into deposition or sublimation.
-        if (t(i) < tmelt .and. vap_dep(i) > 0._r8) then
-           ice_sublim(i) = 0._r8
-        else
+        ice_sublim(i) = 0._r8
+        if (t(i) >= tmelt .or. vap_dep(i) <= 0._r8) then
            ! make ice_sublim negative for consistency with other evap/sub processes
            ice_sublim(i) = min(vap_dep(i),0._r8)
            vap_dep(i)    = 0._r8
@@ -1307,9 +1309,8 @@ subroutine ice_deposition_sublimation_mg4(t, qv, qi, niic, &
         vap_dep(i)=0._r8
 
         !Split into deposition or sublimation.
-        if (t(i) < tmelt .and. vap_dep(i) > 0._r8) then
-           ice_sublim(i)=0._r8
-        else
+        ice_sublim(i)=0._r8
+        if (t(i) >= tmelt .and. vap_dep(i) <= 0._r8) then
            ! make ice_sublim negative for consistency with other evap/sub processes
            ice_sublim(i)=min(vap_dep(i),0._r8)
            vap_dep(i)=0._r8
@@ -1942,7 +1943,8 @@ subroutine secondary_ice_production(t, psacws, msacwi, nsacwi, vlen)
      nsacwi(i) = 0.0_r8
      if((t(i) < 270.16_r8) .and. (t(i) >= 268.16_r8)) then
         nsacwi(i) = 3.5e8_r8*(270.16_r8-t(i))/2.0_r8*psacws(i)
-     else if((t(i) < 268.16_r8) .and. (t(i) >= 265.16_r8)) then
+     end if
+     if((t(i) < 268.16_r8) .and. (t(i) >= 265.16_r8)) then
         nsacwi(i) = 3.5e8_r8*(t(i)-265.16_r8)/3.0_r8*psacws(i)
      end if
   end do
@@ -3106,14 +3108,14 @@ subroutine graupel_rime_splintering(t,qcic,qric,qgic,psacwg,pracg,&
         if (qcic(i).ge.0.5e-3_r8.or.qric(i).ge.0.1e-3_r8) then
            if (psacwg(i).gt.0._r8.or.pracg(i).gt.0._r8) then
               if (t(i).lt.tm_3 .and. t(i).gt.tm_8) then
-                 if (t(i).gt.tm_3) then
+                 if (t(i).gt.tm_3 .or. t(i).lt.tm_8) then
                     fmult = 0._r8
-                 else if (t(i).le.tm_3.and.t(i).gt.tm_5)  then
+                 end if
+                 if (t(i).le.tm_3.and.t(i).gt.tm_5)  then
                     fmult = (tm_3-t(i))/2._r8
-                 else if (t(i).ge.tm_8.and.t(i).le.tm_5)   then
+                 end if
+                 if (t(i).ge.tm_8.and.t(i).le.tm_5)   then
                     fmult = (t(i)-tm_8)/3._r8
-                 else if (t(i).lt.tm_8) then
-                    fmult = 0._r8
                  end if
 ! 1000 is to convert from kg to g  (Check if needed for MG)
 ! splintering from droplets accreted onto graupel

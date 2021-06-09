@@ -1240,8 +1240,8 @@ subroutine micro_mg_tend ( &
   do k=1,nlev
      do i=1,mgncol
         ! make sure when above freezing that esi=esl, not active yet
-        dum1A(i,k) = esi(i,k)
-        dum2A(i,k) = qvi(i,k)
+        dum1 = esi(i,k)
+        dum2 = qvi(i,k)
         esi(i,k) = esl(i,k)
         qvi(i,k) = qvl(i,k)
         if (t(i,k) < tmelt) then
@@ -1250,8 +1250,8 @@ subroutine micro_mg_tend ( &
            ! gridbox average relative humidity of rhmini (not 1).
            !
            ! NOTE: For subcolumns and other non-subgrid clouds, qsfm will be 1.
-           qvi(i,k) = qsfm(i,k) * dum2A(i,k)
-           esi(i,k) = qsfm(i,k) * dum1A(i,k)
+           qvi(i,k) = qsfm(i,k) * dum2
+           esi(i,k) = qsfm(i,k) * dum1
            qvl(i,k) = qsfm(i,k) * qvl(i,k)
            esl(i,k) = qsfm(i,k) * esl(i,k)
         end if
@@ -3300,9 +3300,10 @@ subroutine micro_mg_tend ( &
               ! now add to tendencies, partition between liquid and ice based on temperature
               if (ttmpA(i,k) > 268.15_r8) then
                  dum1=0.0_r8
-                 ! now add to tendencies, partition between liquid and ice based on te
-                 !-------------------------------------------------------
-              else if (ttmpA(i,k) < 238.15_r8) then
+              end if
+              ! now add to tendencies, partition between liquid and ice based on te
+              !-------------------------------------------------------
+              if (ttmpA(i,k) < 238.15_r8) then
                  dum1=1.0_r8
               end if
               dum = (dum_2D(i,k)-qvnA(i,k))/(1._r8+(xxls*dum1+xxlv*(1._r8-dum1))**2 &
@@ -3640,10 +3641,10 @@ subroutine micro_mg_tend ( &
         nrout2(i,k) = 0._r8
         freqr(i,k) = 0._r8
         reff_rain(i,k) = 0._r8
-        dum1A(i,k) = drout2(i,k)
+        dum = drout2(i,k)
         drout2(i,k) = 0._r8
         if (qrout(i,k) .gt. 1.e-7_r8 .and. nrout(i,k) .gt. 0._r8) then
-           drout2(i,k) = dum1A(i,k)
+           drout2(i,k) = dum
            qrout2(i,k) = qrout(i,k) * precip_frac(i,k)
            nrout2(i,k) = nrout(i,k) * precip_frac(i,k)
            freqr(i,k) = precip_frac(i,k)
@@ -3674,11 +3675,11 @@ subroutine micro_mg_tend ( &
         qsout2(i,k) = 0._r8
         nsout2(i,k) = 0._r8
         freqs(i,k)  = 0._r8
-        reff_snow(i,k)=0._r8
-        dum1A(i,k) = dsout2(i,k) 
+        reff_snow(i,k) = 0._r8
+        dum = dsout2(i,k) 
         dsout2(i,k) = 0._r8
         if (qsout(i,k) .gt. 1.e-7_r8 .and. nsout(i,k) .gt. 0._r8) then
-           dsout2(i,k) = dum1A(i,k)
+           dsout2(i,k) = dum 
            qsout2(i,k) = qsout(i,k) * precip_frac(i,k)
            nsout2(i,k) = nsout(i,k) * precip_frac(i,k)
            freqs(i,k) = precip_frac(i,k)      
@@ -3724,10 +3725,10 @@ subroutine micro_mg_tend ( &
         ngout2(i,k) = 0._r8
         freqg(i,k)  = 0._r8
         reff_grau(i,k)=0._r8
-        dum1A(i,k) = dgout2(i,k)
+        dum = dgout2(i,k)
         dgout2(i,k) = 0._r8
         if (qgout(i,k) .gt. 1.e-7_r8 .and. ngout(i,k) .gt. 0._r8) then
-           dgout2(i,k) = dum1A(i,k)
+           dgout2(i,k) = dum
            qgout2(i,k) = qgout(i,k) * precip_frac(i,k)
            ngout2(i,k) = ngout(i,k) * precip_frac(i,k)
            freqg(i,k) = precip_frac(i,k)
