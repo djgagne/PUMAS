@@ -3300,10 +3300,9 @@ subroutine micro_mg_tend ( &
               ! now add to tendencies, partition between liquid and ice based on temperature
               if (ttmpA(i,k) > 268.15_r8) then
                  dum1=0.0_r8
-              end if
-              ! now add to tendencies, partition between liquid and ice based on te
-              !-------------------------------------------------------
-              if (ttmpA(i,k) < 238.15_r8) then
+                 ! now add to tendencies, partition between liquid and ice based on te
+                 !-------------------------------------------------------
+              else if (ttmpA(i,k) < 238.15_r8) then
                  dum1=1.0_r8
               end if
               dum = (dum_2D(i,k)-qvnA(i,k))/(1._r8+(xxls*dum1+xxlv*(1._r8-dum1))**2 &
@@ -3641,7 +3640,10 @@ subroutine micro_mg_tend ( &
         nrout2(i,k) = 0._r8
         freqr(i,k) = 0._r8
         reff_rain(i,k) = 0._r8
+        dum1A(i,k) = drout2(i,k)
+        drout2(i,k) = 0._r8
         if (qrout(i,k) .gt. 1.e-7_r8 .and. nrout(i,k) .gt. 0._r8) then
+           drout2(i,k) = dum1A(i,k)
            qrout2(i,k) = qrout(i,k) * precip_frac(i,k)
            nrout2(i,k) = nrout(i,k) * precip_frac(i,k)
            freqr(i,k) = precip_frac(i,k)
@@ -3673,7 +3675,10 @@ subroutine micro_mg_tend ( &
         nsout2(i,k) = 0._r8
         freqs(i,k)  = 0._r8
         reff_snow(i,k)=0._r8
+        dum1A(i,k) = dsout2(i,k) 
+        dsout2(i,k) = 0._r8
         if (qsout(i,k) .gt. 1.e-7_r8 .and. nsout(i,k) .gt. 0._r8) then
+           dsout2(i,k) = dum1A(i,k)
            qsout2(i,k) = qsout(i,k) * precip_frac(i,k)
            nsout2(i,k) = nsout(i,k) * precip_frac(i,k)
            freqs(i,k) = precip_frac(i,k)      
@@ -3719,7 +3724,10 @@ subroutine micro_mg_tend ( &
         ngout2(i,k) = 0._r8
         freqg(i,k)  = 0._r8
         reff_grau(i,k)=0._r8
+        dum1A(i,k) = dgout2(i,k)
+        dgout2(i,k) = 0._r8
         if (qgout(i,k) .gt. 1.e-7_r8 .and. ngout(i,k) .gt. 0._r8) then
+           dgout2(i,k) = dum1A(i,k)
            qgout2(i,k) = qgout(i,k) * precip_frac(i,k)
            ngout2(i,k) = ngout(i,k) * precip_frac(i,k)
            freqg(i,k) = precip_frac(i,k)

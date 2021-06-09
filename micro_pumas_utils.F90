@@ -1204,17 +1204,14 @@ subroutine ice_deposition_sublimation(t, qv, qi, ni, &
         !Make this a grid-averaged quantity
         vap_dep(i) = vap_dep(i)*icldm(i)
 
-        ! make ice_sublim negative for consistency with other evap/sub processes
-        ice_sublim(i) = min(vap_dep(i),0._r8)
-        vap_dep(i)    = 0._r8
-
         !Split into deposition or sublimation.
         if (t(i) < tmelt .and. vap_dep(i) > 0._r8) then
            ice_sublim(i) = 0._r8
+        else
+           ! make ice_sublim negative for consistency with other evap/sub processes
+           ice_sublim(i) = min(vap_dep(i),0._r8)
+           vap_dep(i)    = 0._r8
         end if
-
-        !T>frz
-        berg(i)=0._r8
 
         !sublimation occurs @ any T. Not so for berg.
         if (t(i) < tmelt) then
@@ -1312,10 +1309,11 @@ subroutine ice_deposition_sublimation_mg4(t, qv, qi, niic, &
         !Split into deposition or sublimation.
         if (t(i) < tmelt .and. vap_dep(i) > 0._r8) then
            ice_sublim(i)=0._r8
+        else
+           ! make ice_sublim negative for consistency with other evap/sub processes
+           ice_sublim(i)=min(vap_dep(i),0._r8)
+           vap_dep(i)=0._r8
         end if
-
-        !T>frz
-        berg(i) = 0._r8
 
         !sublimation occurs @ any T. Not so for berg.
         if (t(i) < tmelt) then
